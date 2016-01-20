@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block css_add %}
+	<style>
+        .False {
+            color: red;
+
+        }
+        .True {
+            color: rgba(76, 224, 62, 0.97);
+
+        }
+	</style>
+    {% load staticfiles %}
+    <script src="{% static 'js/datatables.min.js' %}"></script>
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            $('#example').DataTable();
+        } );
+    </script>
+    <script type="text/javascript">
+	// For demo to fit into DataTables site builder...
+	$('#example')
+		.removeClass( 'display' )
+		.addClass('table table-striped table-bordered');
+</script>
+{% endblock css_add %}
+
+{% block contenido %}
+
+{% for rea in clienta %}
+    {{ rea.nombre }}
+{% endfor %}
+
+
+    <div class="row" ng-app="Clientes">
+		<table class="table table-bordered display" id="example">
+		    <thead>
+		      <tr>
+		        <th>Nombre:</th>
+		        <th>Caratula</th>
+		        <th>Num. Tarjeta Mejoravit</th>
+                 <th>Credito Mejoravit</th>
+		        <th>ODC 1</th>
+		        <th>ODC 2</th>
+		        <th>ODC 3</th>
+		        <th>Estatus</th>
+		        <th>Fecha</th>
+		        <th>Factura</th>
+		        <th>Comision</th>
+		        <th>Efectivo</th>
+		      </tr>
+		    </thead>
+		    <tbody >
+                    {% for foo in cliente %}
+                    <tr>
+                        <td>{{ foo.id }}{{ foo.nombre }}{{ foo.apellidos }}</td>
+                        {% for faa in tarjeta %}
+
+                            {% if faa.cliente.id == foo.id %}
+                                <td> {{ faa.caratula }}</td>
+
+                                <td>
+                                    <div class="dropdown">
+                                      <button class="btn btn-success" id="dLabel" data-target="#" href="http://example.com" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" >
+                                        {{ faa.numero_tarjeta }}<span class="caret"></span>
+                                      </button>
+                                      <ul class="dropdown-menu" aria-labelledby="dLabel">
+                                        <li class="dropdown-item {{ faa.tarjeta_entregada  }}" type="button">Entregada</li>
+                                        <li class="dropdown-item {{ faa.tarjeta_activa }}" type="button">Activa</li>
+                                        <li class="dropdown-item {{ faa.tarjeta_con_fondos}}" type="button">Con fondos</li>
+                                      </ul>
+                                    </div>
+                                </td>
+                                <td ng-controller="CalculatorController">
+                                    <button type="button" class="btn btn-primary" data-target="#{{faa.cliente.id}}" data-toggle="modal" data-target=".bd-example-modal-sm"  ng-init="montoInicial={{ faa.credito}}" ng-click="calculate()">{{ faa.credito }}</button>
+                                    <div class="modal fade bs-example-modal-sm" id="{{faa.cliente.id}}" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+                                      <div class="modal-dialog modal-sm">
+                                        <div class="modal-content">
+                                              <table class="table">
+                                                <thead>
+                                                  <tr>
+                                                    <th>Concepto</th>
+                                                    <th>Monto</th>
+                                                    <th>%</th>
+                                                  </tr>
+                                                </thead>
+                                                <tbody>
+                                                  <tr>
+                                                    <td>Monto del Credito</td>
+                                                    <td>{{ faa.credito }}</td>
+                                                    <td>100%</td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Mano de Obra</td>
+                                                    <td>-{$ manoObra $}</td>
+                                                    <td>-20%</td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Estado</td>
+                                                    <td>{$ monto1 $}</td>
+                                                    <td></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Comisión</td>
+                                                    <td>-{$ comisionA $}</td>
+                                                    <td>-4%</td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Estado</td>
+                                                    <td>{$ monto2 $}</td>
+                                                    <td></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Compra Material</td>
+                                                    <td>{$ monto2 $}</td>
+                                                    <td></td>
+                                                  </tr>
+                                                  <tr>
+                                                    <td>Impuestos</td>
+                                                    <td>{$ iva $}</td>
+                                                    <td>-16%</td>
+                                                  </tr>
+                                                   <tr>
+                                                    <td>Total</td>
+                                                    <td>{$ total $}</td>
+                                                    <td></td>
+                                                  </tr>
+                                                </tbody>
+                                              </table>
+                                        </div>
+                                      </div>
+                                    </div>
+                                </td>
+                                <td> <a href="{% url 'odc1' cliente_id=foo.id %}">Generar</a></td>
+		                        <td><a href="{% url 'odc2' cliente_id=foo.id %}">Generar</a></td>
+		                        <td><a href="{% url 'odc3' cliente_id=foo.id %}">Generar</a></td>
+                                <td>estatus</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            {% endif %}
+                        {% endfor %}
+                  </tr>
+                    {% endfor %}
+		    </tbody>
+		 </table>
+</div>
+
+
+
+{% endblock contenido %}
+
+{% block javascript %}
+    <script>
+     	var app = angular.module('Clientes', [])
+     		app.config(function($interpolateProvider) {
+	        		$interpolateProvider.startSymbol('{$');
+	    		    $interpolateProvider.endSymbol('$}');
+	        });
+
+     	   	app.controller('CalculatorController',['$scope', function($scope){
+                $scope.montoInicial = {};
+				$scope.calculate = function(){
+					 $scope.manoObra = (parseInt($scope.montoInicial) * 20 /100);
+					 //cobtenemos el  20%
+					 $scope.monto1 = ($scope.montoInicial)-(parseInt($scope.montoInicial) * 20 /100);
+					 $scope.comisionA = $scope.monto1 * 4 /100;
+					 //obtenemos el 4%
+					 $scope.monto2 = $scope.monto1 - $scope.comisionA;
+					 $scope.iva = $scope.monto2 * 16 / 100;
+					 //obtenemos el iva
+					 $scope.total  = $scope.monto2 - $scope.iva;
+				}
+			}]);
+
+
+
+
+    </script>
+{% endblock %}
